@@ -2,11 +2,13 @@ package com.dicoding.picodiploma.loginwithanimation.view.login
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.app.blob.BlobStoreManager.Session
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
@@ -14,11 +16,15 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.dicoding.picodiploma.loginwithanimation.data.ResultState
 import com.dicoding.picodiploma.loginwithanimation.data.pref.UserModel
 import com.dicoding.picodiploma.loginwithanimation.databinding.ActivityLoginBinding
 import com.dicoding.picodiploma.loginwithanimation.view.ViewModelFactory
 import com.dicoding.picodiploma.loginwithanimation.view.main.MainActivity
+import com.dicoding.picodiploma.loginwithanimation.view.welcome.WelcomeActivity
+import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
 
@@ -62,20 +68,45 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            viewModel.login(email, password).observe(this) { result ->
-                when (result) {
+            viewModel.login(email, password).observe(this) { user ->
+                when (user) {
                     is ResultState.Error -> {
-                        showToast(result.error)
+                        showToast(user.error)
                     }
                     is ResultState.Loading -> { }
                     is ResultState.Success -> {
-                        showToast(result.data.message)
-                        val intent = Intent(this, MainActivity::class.java)
-                        startActivity(intent)
-                        this.finish()
+                        showToast(user.data.message)
+                        AlertDialog.Builder(this).apply {
+                            setTitle("Hore")
+                            setMessage("Selamat Anda berhasil login!")
+                            setPositiveButton("Lanjut") { _,_ ->
+                                saveSession(
+                                    UserModel(
+                                        user.data.loginResult.token,
+                                        user.data.loginResult.name,
+                                        user.data.loginResult.userId,
+                                        true
+                                    )
+                                )
+                            }
+                            Log.e("Login", user.data.loginResult.token)
+                            create()
+                            show()
+                        }
                     }
                 }
             }
+        }
+    }
+
+    private fun saveSession (session: UserModel) {
+        lifecycleScope.launch {
+            viewModel.saveSession(session)
+            val intent = Intent(this@LoginActivity, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+            ViewModelFactory.clearInstance()
+            startActivity(intent)
+
         }
     }
 

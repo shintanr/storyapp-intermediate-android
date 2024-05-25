@@ -7,18 +7,25 @@ import com.dicoding.picodiploma.loginwithanimation.data.UserRepository
 import com.dicoding.picodiploma.loginwithanimation.di.Injection
 import com.dicoding.picodiploma.loginwithanimation.view.login.LoginViewModel
 import com.dicoding.picodiploma.loginwithanimation.view.main.MainViewModel
+import com.dicoding.picodiploma.loginwithanimation.view.signup.SignUpViewModel
 
 class ViewModelFactory(private val repository: UserRepository) : ViewModelProvider.NewInstanceFactory() {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
-            modelClass.isAssignableFrom(MainViewModel::class.java) -> {
-                MainViewModel(repository) as T
-            }
-            modelClass.isAssignableFrom(LoginViewModel::class.java) -> {
+            modelClass.isAssignableFrom(LoginViewModel::class.java) ->{
                 LoginViewModel(repository) as T
             }
+            modelClass.isAssignableFrom(SignUpViewModel::class.java)->{
+                SignUpViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(MainViewModel::class.java)->{
+                MainViewModel(repository) as T
+            }
+//            modelClass.isAssignableFrom(AddStoryViewModel::class.java)->{
+//                AddStoryViewModel(repository) as T
+//            }
             else -> throw IllegalArgumentException("Unknown ViewModel class: " + modelClass.name)
         }
     }
@@ -26,6 +33,11 @@ class ViewModelFactory(private val repository: UserRepository) : ViewModelProvid
     companion object {
         @Volatile
         private var INSTANCE: ViewModelFactory? = null
+
+        fun clearInstance(){
+            UserRepository.clearInstance()
+            INSTANCE = null
+        }
         @JvmStatic
         fun getInstance(context: Context): ViewModelFactory {
             if (INSTANCE == null) {
@@ -35,5 +47,7 @@ class ViewModelFactory(private val repository: UserRepository) : ViewModelProvid
             }
             return INSTANCE as ViewModelFactory
         }
+
+
     }
 }

@@ -9,6 +9,10 @@ import com.dicoding.picodiploma.loginwithanimation.data.pref.UserModel
 import kotlinx.coroutines.launch
 
 class MainViewModel(private val repository: UserRepository) : ViewModel() {
+
+    fun getStories() = repository.getStory()
+
+
     fun getSession(): LiveData<UserModel> {
         return repository.getSession().asLiveData()
     }

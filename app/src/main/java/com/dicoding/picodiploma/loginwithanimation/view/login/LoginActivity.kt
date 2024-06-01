@@ -82,8 +82,8 @@ class LoginActivity : AppCompatActivity() {
                             setPositiveButton("Lanjut") { _,_ ->
                                 saveSession(
                                     UserModel(
-                                        user.data.loginResult.token,
                                         user.data.loginResult.name,
+                                        user.data.loginResult.token,
                                         user.data.loginResult.userId,
                                         true
                                     )

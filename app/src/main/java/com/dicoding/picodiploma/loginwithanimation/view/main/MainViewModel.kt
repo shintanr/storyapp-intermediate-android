@@ -10,7 +10,7 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(private val repository: UserRepository) : ViewModel() {
 
-    fun getStories() = repository.getStory()
+    fun getStories(token: String) = repository.getStory(token )
 
 
     fun getSession(): LiveData<UserModel> {

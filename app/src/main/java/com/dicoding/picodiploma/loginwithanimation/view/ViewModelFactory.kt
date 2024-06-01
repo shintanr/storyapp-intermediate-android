@@ -13,23 +13,19 @@ class ViewModelFactory(private val repository: UserRepository) : ViewModelProvid
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return when{
-            modelClass.isAssignableFrom(LoginViewModel::class.java) ->{
+        return when {
+            modelClass.isAssignableFrom(LoginViewModel::class.java) -> {
                 LoginViewModel(repository) as T
             }
-            modelClass.isAssignableFrom(SignUpViewModel::class.java)->{
-                SignUpViewModel(repository) as T
-            }
-            modelClass.isAssignableFrom(MainViewModel::class.java)->{
+            modelClass.isAssignableFrom(MainViewModel::class.java) -> {
                 MainViewModel(repository) as T
             }
-//            modelClass.isAssignableFrom(AddStoryViewModel::class.java)->{
-//                AddStoryViewModel(repository) as T
-//            }
-            else -> throw IllegalArgumentException("Unknown ViewModel class:" + modelClass.name)
+            modelClass.isAssignableFrom(SignUpViewModel::class.java) -> {
+                SignUpViewModel(repository) as T
+            }
+            else -> throw IllegalArgumentException("Unknown ViewModel class: " + modelClass.name)
         }
     }
-
 
     companion object {
         @Volatile
@@ -39,16 +35,12 @@ class ViewModelFactory(private val repository: UserRepository) : ViewModelProvid
             UserRepository.clearInstance()
             INSTANCE = null
         }
+
         @JvmStatic
         fun getInstance(context: Context): ViewModelFactory {
-            if (INSTANCE == null) {
-                synchronized(ViewModelFactory::class.java) {
-                    INSTANCE = ViewModelFactory(Injection.provideRepository(context))
-                }
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: ViewModelFactory(Injection.provideRepository(context)).also { INSTANCE = it }
             }
-            return INSTANCE as ViewModelFactory
         }
-
-
     }
 }

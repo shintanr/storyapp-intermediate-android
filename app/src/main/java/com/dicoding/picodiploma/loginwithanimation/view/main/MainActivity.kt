@@ -58,17 +58,22 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupAction(token: String) {
         lifecycleScope.launch {
-            viewModel.getStories(token).observe(this@MainActivity) { story ->
+            viewModel.getStories().observe(this@MainActivity) { story ->
                 when (story) {
                     is ResultState.Error -> {
+                        // Hide progress bar
+                        // binding.progressBar.visibility = View.INVISIBLE
                         Toast.makeText(this@MainActivity, story.error, Toast.LENGTH_SHORT).show()
                     }
 
                     is ResultState.Loading -> {
-
+                        // Show progress bar
+                        // binding.progressBar.visibility = View.VISIBLE
                     }
 
                     is ResultState.Success -> {
+                        // Hide progress bar
+                        // binding.progressBar.visibility = View.INVISIBLE
                         val adapter = MainAdapter()
                         adapter.submitList(story.data)
                         binding.rvStory.adapter = adapter

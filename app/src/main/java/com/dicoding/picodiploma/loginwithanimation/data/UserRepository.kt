@@ -16,15 +16,14 @@ import retrofit2.Response
 import android.util.Log
 
 class UserRepository private constructor(
-    private val apiService: ApiService,
     private val userPreference: UserPreference,
-
+    private val apiService: ApiService
 ) {
 
-    fun getStory(token: String): LiveData<ResultState<List<ListStoryItem>>> = liveData{
+    fun getStory(): LiveData<ResultState<List<ListStoryItem>>> = liveData{
         emit(ResultState.Loading)
         try{
-            val response = apiService.getStories("Bearer $token")
+            val response = apiService.getStories()
             emit(ResultState.Success(response.listStory))
         }catch (e: HttpException) {
             val errorBody = e.response()?.errorBody()?.string()
@@ -92,7 +91,7 @@ class UserRepository private constructor(
             userPreference: UserPreference
         ): UserRepository =
             INSTANCE ?: synchronized(this) {
-                INSTANCE ?: UserRepository(apiService, userPreference)
+                INSTANCE ?: UserRepository(userPreference, apiService)
             }.also { INSTANCE = it }
     }
 }

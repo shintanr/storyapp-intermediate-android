@@ -13,7 +13,23 @@ class ViewModelFactory(private val repository: UserRepository) : ViewModelProvid
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
+        return when{
+            modelClass.isAssignableFrom(LoginViewModel::class.java) ->{
+                LoginViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(SignUpViewModel::class.java)->{
+                SignUpViewModel(repository) as T
+            }
+            modelClass.isAssignableFrom(MainViewModel::class.java)->{
+                MainViewModel(repository) as T
+            }
+//            modelClass.isAssignableFrom(AddStoryViewModel::class.java)->{
+//                AddStoryViewModel(repository) as T
+//            }
+            else -> throw IllegalArgumentException("Unknown ViewModel class:" + modelClass.name)
+        }
     }
+
 
     companion object {
         @Volatile

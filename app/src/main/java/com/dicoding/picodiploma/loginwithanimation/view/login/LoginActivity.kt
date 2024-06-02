@@ -2,7 +2,6 @@ package com.dicoding.picodiploma.loginwithanimation.view.login
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
-import android.app.blob.BlobStoreManager.Session
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -17,13 +16,11 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.dicoding.picodiploma.loginwithanimation.data.ResultState
 import com.dicoding.picodiploma.loginwithanimation.data.pref.UserModel
 import com.dicoding.picodiploma.loginwithanimation.databinding.ActivityLoginBinding
 import com.dicoding.picodiploma.loginwithanimation.view.ViewModelFactory
 import com.dicoding.picodiploma.loginwithanimation.view.main.MainActivity
-import com.dicoding.picodiploma.loginwithanimation.view.welcome.WelcomeActivity
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
@@ -33,7 +30,6 @@ class LoginActivity : AppCompatActivity() {
     private val viewModel by viewModels<LoginViewModel> {
         ViewModelFactory.getInstance(this)
     }
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,10 +43,10 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun setupView() {
-        @Suppress("DEPRECATION")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.insetsController?.hide(WindowInsets.Type.statusBars())
         } else {
+            @Suppress("DEPRECATION")
             window.setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
@@ -79,7 +75,7 @@ class LoginActivity : AppCompatActivity() {
                         AlertDialog.Builder(this).apply {
                             setTitle("Hore")
                             setMessage("Selamat Anda berhasil login!")
-                            setPositiveButton("Lanjut") { _,_ ->
+                            setPositiveButton("Lanjut") { dialog, _ ->
                                 saveSession(
                                     UserModel(
                                         user.data.loginResult.name,
@@ -88,6 +84,7 @@ class LoginActivity : AppCompatActivity() {
                                         true
                                     )
                                 )
+                                dialog.dismiss()
                             }
                             Log.e("Login", user.data.loginResult.token)
                             create()
@@ -99,14 +96,13 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveSession (session: UserModel) {
+    private fun saveSession(session: UserModel) {
         lifecycleScope.launch {
             viewModel.saveSession(session)
             val intent = Intent(this@LoginActivity, MainActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
             ViewModelFactory.clearInstance()
             startActivity(intent)
-
         }
     }
 
@@ -120,17 +116,13 @@ class LoginActivity : AppCompatActivity() {
 
             override fun afterTextChanged(s: Editable?) {}
         })
-
-        // Add similar TextWatcher for other fields if needed
     }
 
     private fun validatePassword(password: String) {
-        if (password.isEmpty()) {
-            binding.passwordEditText.error = "Password harus diisi"
-        } else if (password.length < 8) {
-            binding.passwordEditText.error = "Password minimal 8 karakter"
-        } else {
-            binding.passwordEditText.error = null
+        when {
+            password.isEmpty() -> binding.passwordEditText.error = "Password harus diisi"
+            password.length < 8 -> binding.passwordEditText.error = "Password minimal 8 karakter"
+            else -> binding.passwordEditText.error = null
         }
     }
 
@@ -160,7 +152,6 @@ class LoginActivity : AppCompatActivity() {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
     }
 
-
     private fun playAnimation() {
         ObjectAnimator.ofFloat(binding.imageView, View.TRANSLATION_X, -30f, 30f).apply {
             duration = 6000
@@ -169,16 +160,11 @@ class LoginActivity : AppCompatActivity() {
         }.start()
 
         val title = ObjectAnimator.ofFloat(binding.titleTextView, View.ALPHA, 1f).setDuration(100)
-        val message =
-            ObjectAnimator.ofFloat(binding.messageTextView, View.ALPHA, 1f).setDuration(100)
-        val emailTextView =
-            ObjectAnimator.ofFloat(binding.emailTextView, View.ALPHA, 1f).setDuration(100)
-        val emailEditTextLayout =
-            ObjectAnimator.ofFloat(binding.emailEditTextLayout, View.ALPHA, 1f).setDuration(100)
-        val passwordTextView =
-            ObjectAnimator.ofFloat(binding.passwordTextView, View.ALPHA, 1f).setDuration(100)
-        val passwordEditTextLayout =
-            ObjectAnimator.ofFloat(binding.passwordEditTextLayout, View.ALPHA, 1f).setDuration(100)
+        val message = ObjectAnimator.ofFloat(binding.messageTextView, View.ALPHA, 1f).setDuration(100)
+        val emailTextView = ObjectAnimator.ofFloat(binding.emailTextView, View.ALPHA, 1f).setDuration(100)
+        val emailEditTextLayout = ObjectAnimator.ofFloat(binding.emailEditTextLayout, View.ALPHA, 1f).setDuration(100)
+        val passwordTextView = ObjectAnimator.ofFloat(binding.passwordTextView, View.ALPHA, 1f).setDuration(100)
+        val passwordEditTextLayout = ObjectAnimator.ofFloat(binding.passwordEditTextLayout, View.ALPHA, 1f).setDuration(100)
         val login = ObjectAnimator.ofFloat(binding.loginButton, View.ALPHA, 1f).setDuration(100)
 
         AnimatorSet().apply {
@@ -194,5 +180,4 @@ class LoginActivity : AppCompatActivity() {
             startDelay = 100
         }.start()
     }
-
 }

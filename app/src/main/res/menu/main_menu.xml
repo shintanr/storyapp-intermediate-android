@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
-    <item android:id="@+id/others" android:title="main menu"
-        app:showAsAction="ifRoom"
-        android:icon="@drawable/button_more_white">
-        <menu>
-            <item android:id="@+id/logoutButton"
-                android:title="@string/logout" />
-        </menu>
-    </item>
+    <item
+        android:id="@+id/logout_button"
+        android:icon="@drawable/logout_button"
+        android:title="@string/logout"
+        android:contentDescription="@string/logout_string"
+        app:showAsAction="ifRoom"/>
 </menu>

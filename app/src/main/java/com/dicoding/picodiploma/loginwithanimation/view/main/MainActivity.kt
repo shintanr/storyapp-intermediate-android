@@ -64,7 +64,7 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
                 finish()
             } else {
-                setupAction(it.token)
+                setupAction()
             }
         }
     }
@@ -77,7 +77,7 @@ class MainActivity : AppCompatActivity() {
         binding.rvStory.adapter = adapter
     }
 
-    private fun setupAction(token: String) {
+    private fun setupAction() {
         lifecycleScope.launch {
             viewModel.getStories().observe(this@MainActivity) { story ->
                 when (story) {

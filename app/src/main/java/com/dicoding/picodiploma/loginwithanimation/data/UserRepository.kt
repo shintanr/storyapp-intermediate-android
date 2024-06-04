@@ -14,11 +14,24 @@ import kotlinx.coroutines.flow.Flow
 import retrofit2.HttpException
 import retrofit2.Response
 import android.util.Log
+import kotlinx.coroutines.flow.first
 
 class UserRepository private constructor(
     private val userPreference: UserPreference,
     private val apiService: ApiService
 ) {
+
+    fun getDetailStory(id: String): LiveData<ResultState<ListStoryItem>> = liveData {
+        emit(ResultState.Loading)
+        try {
+            val token = userPreference.getToken().first()
+            val response = apiService.detailStory("Bearer $token", id)
+            val result = response.story
+            emit(ResultState.Success(result))
+        } catch (e: Exception) {
+            emit(ResultState.Error(e.message.toString()))
+        }
+    }
 
     fun getStory(): LiveData<ResultState<List<ListStoryItem>>> = liveData{
         emit(ResultState.Loading)

@@ -3,6 +3,7 @@ package com.dicoding.picodiploma.loginwithanimation.view.main
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import android.view.WindowInsets
@@ -16,7 +17,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.dicoding.picodiploma.loginwithanimation.R
 import com.dicoding.picodiploma.loginwithanimation.data.ResultState
 import com.dicoding.picodiploma.loginwithanimation.databinding.ActivityMainBinding
+import com.dicoding.picodiploma.loginwithanimation.response.ListStoryItem
 import com.dicoding.picodiploma.loginwithanimation.view.ViewModelFactory
+import com.dicoding.picodiploma.loginwithanimation.view.detail.DetailActivity
 import com.dicoding.picodiploma.loginwithanimation.view.welcome.WelcomeActivity
 import kotlinx.coroutines.launch
 
@@ -48,6 +51,20 @@ class MainActivity : AppCompatActivity() {
         // Setup RecyclerView
         setupRecyclerView()
         setupView()
+        onClickCallback()
+    }
+    private fun onClickCallback() {
+        MainAdapter.setOnItemCallback(object : MainAdapter.OnItemClickCallback {
+            override fun onItemClicked(data: ListStoryItem) {
+                val intent = Intent(this@MainActivity, DetailActivity::class.java)
+                intent.putExtra(DetailActivity.EXTRA_ID, data.id)
+
+                // Debugging: Print the ID being passed
+                Log.d("MainActivity", "Clicked story ID: ${data.id}")
+
+                startActivity(intent)
+            }
+        })
     }
 
     private fun setupRecyclerView() {

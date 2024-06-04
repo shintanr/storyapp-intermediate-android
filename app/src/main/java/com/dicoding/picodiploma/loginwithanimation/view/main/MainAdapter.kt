@@ -54,6 +54,11 @@ class MainAdapter: ListAdapter<ListStoryItem, MainAdapter.ViewHolder>(DIFF_CALLB
     }
 
     companion object {
+        fun setOnItemCallback(onItemClickCallback: MainAdapter.OnItemClickCallback) {
+            this.onItemClickCallback = onItemClickCallback
+        }
+
+        private lateinit var onItemClickCallback: MainAdapter.OnItemClickCallback
         val DIFF_CALLBACK = object : DiffUtil.ItemCallback<ListStoryItem>() {
             override fun areItemsTheSame(oldItem: ListStoryItem, newItem: ListStoryItem): Boolean {
                 return oldItem.id == newItem.id

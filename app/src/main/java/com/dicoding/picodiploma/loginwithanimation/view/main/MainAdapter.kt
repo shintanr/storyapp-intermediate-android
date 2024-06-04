@@ -1,6 +1,5 @@
 package com.dicoding.picodiploma.loginwithanimation.view.main
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
@@ -10,7 +9,6 @@ import com.bumptech.glide.Glide
 import com.dicoding.picodiploma.loginwithanimation.databinding.ItemStoryBinding
 import com.dicoding.picodiploma.loginwithanimation.response.ListStoryItem
 import com.dicoding.picodiploma.loginwithanimation.withDateFormat
-
 
 class MainAdapter : ListAdapter<ListStoryItem, MainAdapter.ViewHolder>(DIFF_CALLBACK) {
 
@@ -24,17 +22,17 @@ class MainAdapter : ListAdapter<ListStoryItem, MainAdapter.ViewHolder>(DIFF_CALL
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val story = getItem(position)
         if (story != null) {
-            holder.storyData(story)
+            holder.bind(story)
         }
     }
 
     inner class ViewHolder(private val binding: ItemStoryBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun storyData(data: ListStoryItem) {
+        fun bind(data: ListStoryItem) {
             binding.apply {
                 root.setOnClickListener {
                     onItemClickCallback?.onItemClicked(data)
                 }
-                Glide.with(itemView)
+                Glide.with(itemView.context)
                     .load(data.photoUrl)
                     .into(ivItemPhoto)
                 tvItemName.text = data.name

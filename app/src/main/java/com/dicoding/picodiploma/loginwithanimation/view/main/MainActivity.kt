@@ -28,6 +28,7 @@ class MainActivity : AppCompatActivity() {
         ViewModelFactory.getInstance(this)
     }
     private lateinit var binding: ActivityMainBinding
+    private lateinit var adapter: MainAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +36,25 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         supportActionBar?.show()
+
+        // Initialize adapter and set onClickCallback
+        adapter = MainAdapter().apply {
+            setOnItemClickCallback(object : MainAdapter.OnItemClickCallback {
+                override fun onItemClicked(data: ListStoryItem) {
+                    val intent = Intent(this@MainActivity, DetailActivity::class.java)
+                    intent.putExtra(DetailActivity.EXTRA_ID, data.id)
+
+                    // Debugging: Print the ID being passed
+                    Log.d("MainActivity", "Clicked story ID: ${data.id}")
+
+                    startActivity(intent)
+                }
+            })
+        }
+
+        // Setup RecyclerView
+        setupRecyclerView()
+        setupView()
 
         // Observe session state
         viewModel.getSession().observe(this) {
@@ -47,24 +67,6 @@ class MainActivity : AppCompatActivity() {
                 setupAction(it.token)
             }
         }
-
-        // Setup RecyclerView
-        setupRecyclerView()
-        setupView()
-        onClickCallback()
-    }
-    private fun onClickCallback() {
-        MainAdapter.setOnItemCallback(object : MainAdapter.OnItemClickCallback {
-            override fun onItemClicked(data: ListStoryItem) {
-                val intent = Intent(this@MainActivity, DetailActivity::class.java)
-                intent.putExtra(DetailActivity.EXTRA_ID, data.id)
-
-                // Debugging: Print the ID being passed
-                Log.d("MainActivity", "Clicked story ID: ${data.id}")
-
-                startActivity(intent)
-            }
-        })
     }
 
     private fun setupRecyclerView() {
@@ -72,6 +74,7 @@ class MainActivity : AppCompatActivity() {
         binding.rvStory.layoutManager = layoutManager
         val itemDecoration = DividerItemDecoration(this, layoutManager.orientation)
         binding.rvStory.addItemDecoration(itemDecoration)
+        binding.rvStory.adapter = adapter
     }
 
     private fun setupAction(token: String) {
@@ -92,9 +95,7 @@ class MainActivity : AppCompatActivity() {
                     is ResultState.Success -> {
                         // Hide progress bar
                         // binding.progressBar.visibility = View.INVISIBLE
-                        val adapter = MainAdapter()
                         adapter.submitList(story.data)
-                        binding.rvStory.adapter = adapter
                     }
                 }
             }
@@ -124,7 +125,7 @@ class MainActivity : AppCompatActivity() {
             R.id.logout_button -> {
                 lifecycleScope.launch {
                     viewModel.logout()
-                    val intent = Intent(this@MainActivity,WelcomeActivity::class.java)
+                    val intent = Intent(this@MainActivity, WelcomeActivity::class.java)
                     startActivity(intent)
                     finish()
                 }
@@ -132,5 +133,4 @@ class MainActivity : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
-
 }

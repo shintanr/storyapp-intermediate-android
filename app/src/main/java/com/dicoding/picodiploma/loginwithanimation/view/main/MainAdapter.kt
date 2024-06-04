@@ -12,7 +12,7 @@ import com.dicoding.picodiploma.loginwithanimation.response.ListStoryItem
 import com.dicoding.picodiploma.loginwithanimation.withDateFormat
 
 
-class MainAdapter: ListAdapter<ListStoryItem, MainAdapter.ViewHolder>(DIFF_CALLBACK) {
+class MainAdapter : ListAdapter<ListStoryItem, MainAdapter.ViewHolder>(DIFF_CALLBACK) {
 
     private var onItemClickCallback: OnItemClickCallback? = null
 
@@ -28,24 +28,22 @@ class MainAdapter: ListAdapter<ListStoryItem, MainAdapter.ViewHolder>(DIFF_CALLB
         }
     }
 
-    inner class ViewHolder(private val binding: ItemStoryBinding): RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(private val binding: ItemStoryBinding) : RecyclerView.ViewHolder(binding.root) {
         fun storyData(data: ListStoryItem) {
             binding.apply {
                 root.setOnClickListener {
                     onItemClickCallback?.onItemClicked(data)
                 }
-//                Log.d("StoryData", "Ini adalah data: ${data.photoUrl}")
                 Glide.with(itemView)
                     .load(data.photoUrl)
                     .into(ivItemPhoto)
                 tvItemName.text = data.name
                 tvDate.text = data.createdAt?.withDateFormat()
             }
-
         }
     }
 
-    fun setOnItemCallback(onItemClickCallback: OnItemClickCallback) {
+    fun setOnItemClickCallback(onItemClickCallback: OnItemClickCallback) {
         this.onItemClickCallback = onItemClickCallback
     }
 
@@ -54,20 +52,13 @@ class MainAdapter: ListAdapter<ListStoryItem, MainAdapter.ViewHolder>(DIFF_CALLB
     }
 
     companion object {
-        fun setOnItemCallback(onItemClickCallback: MainAdapter.OnItemClickCallback) {
-            this.onItemClickCallback = onItemClickCallback
-        }
-
-        private lateinit var onItemClickCallback: MainAdapter.OnItemClickCallback
         val DIFF_CALLBACK = object : DiffUtil.ItemCallback<ListStoryItem>() {
             override fun areItemsTheSame(oldItem: ListStoryItem, newItem: ListStoryItem): Boolean {
                 return oldItem.id == newItem.id
-
             }
 
             override fun areContentsTheSame(oldItem: ListStoryItem, newItem: ListStoryItem): Boolean {
                 return oldItem == newItem
-
             }
         }
     }

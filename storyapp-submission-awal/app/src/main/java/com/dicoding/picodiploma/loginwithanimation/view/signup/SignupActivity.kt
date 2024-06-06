@@ -1,4 +1,4 @@
-package com.dicoding.picodiploma.loginwithanimation.view.login
+package com.dicoding.picodiploma.loginwithanimation.view.signup
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
@@ -7,7 +7,6 @@ import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
@@ -15,25 +14,21 @@ import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
-import com.dicoding.picodiploma.loginwithanimation.data.ResultState
-import com.dicoding.picodiploma.loginwithanimation.data.pref.UserModel
-import com.dicoding.picodiploma.loginwithanimation.databinding.ActivityLoginBinding
+import com.dicoding.picodiploma.loginwithanimation.data.result.ResultState
+import com.dicoding.picodiploma.loginwithanimation.databinding.ActivitySignupBinding
 import com.dicoding.picodiploma.loginwithanimation.view.ViewModelFactory
-import com.dicoding.picodiploma.loginwithanimation.view.main.MainActivity
-import kotlinx.coroutines.launch
+import com.dicoding.picodiploma.loginwithanimation.view.login.LoginActivity
 
-class LoginActivity : AppCompatActivity() {
+class SignupActivity : AppCompatActivity() {
+    private lateinit var binding: ActivitySignupBinding
 
-    private lateinit var binding: ActivityLoginBinding
-
-    private val viewModel by viewModels<LoginViewModel> {
+    private val viewModel by viewModels<SignUpViewModel> {
         ViewModelFactory.getInstance(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityLoginBinding.inflate(layoutInflater)
+        binding = ActivitySignupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         setupView()
@@ -43,10 +38,10 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun setupView() {
+        @Suppress("DEPRECATION")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.insetsController?.hide(WindowInsets.Type.statusBars())
         } else {
-            @Suppress("DEPRECATION")
             window.setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
@@ -56,53 +51,27 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun setupAction() {
-        binding.loginButton.setOnClickListener {
+        binding.signupButton.setOnClickListener {
+            val name = binding.nameEditText.text.toString()
             val email = binding.emailEditText.text.toString()
             val password = binding.passwordEditText.text.toString()
 
-            if (!isFormValid(email, password)) {
+            if (!isFormValid(name, email, password)) {
                 return@setOnClickListener
             }
 
-            viewModel.login(email, password).observe(this) { user ->
-                when (user) {
+            viewModel.register(name, email, password).observe(this) { result ->
+                when (result) {
                     is ResultState.Error -> {
-                        showToast(user.error)
+                        showToast(result.error)
                     }
                     is ResultState.Loading -> { }
                     is ResultState.Success -> {
-                        showToast(user.data.message)
-                        AlertDialog.Builder(this).apply {
-                            setTitle("Hore")
-                            setMessage("Selamat Anda berhasil login!")
-                            setPositiveButton("Lanjut") { dialog, _ ->
-                                saveSession(
-                                    UserModel(
-                                        user.data.loginResult.name,
-                                        user.data.loginResult.token,
-                                        user.data.loginResult.userId,
-                                        true
-                                    )
-                                )
-                                dialog.dismiss()
-                            }
-                            Log.e("Login", user.data.loginResult.token)
-                            create()
-                            show()
-                        }
+                        startActivity(Intent(this, LoginActivity::class.java))
+                        showToast(result.data.message)
                     }
                 }
             }
-        }
-    }
-
-    private fun saveSession(session: UserModel) {
-        lifecycleScope.launch {
-            viewModel.saveSession(session)
-            val intent = Intent(this@LoginActivity, MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-            ViewModelFactory.clearInstance()
-            startActivity(intent)
         }
     }
 
@@ -116,18 +85,31 @@ class LoginActivity : AppCompatActivity() {
 
             override fun afterTextChanged(s: Editable?) {}
         })
+
+        // Add similar TextWatcher for other fields if needed
     }
 
     private fun validatePassword(password: String) {
-        when {
-            password.isEmpty() -> binding.passwordEditText.error = "Password harus diisi"
-            password.length < 8 -> binding.passwordEditText.error = "Password minimal 8 karakter"
-            else -> binding.passwordEditText.error = null
+        if (password.isEmpty()) {
+            binding.passwordEditText.error = "Password harus diisi"
+        } else if (password.length < 8) {
+            binding.passwordEditText.error = "Password minimal 8 karakter"
+        } else {
+            binding.passwordEditText.error = null
         }
     }
 
-    private fun isFormValid(email: String, password: String): Boolean {
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun isFormValid(name: String, email: String, password: String): Boolean {
         var isValid = true
+
+        if (name.isEmpty()) {
+            binding.nameEditText.error = "Nama harus di isi"
+            isValid = false
+        }
 
         if (email.isEmpty()) {
             binding.emailEditText.error = "Email harus diisi"
@@ -148,9 +130,6 @@ class LoginActivity : AppCompatActivity() {
         return isValid
     }
 
-    private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
 
     private fun playAnimation() {
         ObjectAnimator.ofFloat(binding.imageView, View.TRANSLATION_X, -30f, 30f).apply {
@@ -160,22 +139,30 @@ class LoginActivity : AppCompatActivity() {
         }.start()
 
         val title = ObjectAnimator.ofFloat(binding.titleTextView, View.ALPHA, 1f).setDuration(100)
-        val message = ObjectAnimator.ofFloat(binding.messageTextView, View.ALPHA, 1f).setDuration(100)
-        val emailTextView = ObjectAnimator.ofFloat(binding.emailTextView, View.ALPHA, 1f).setDuration(100)
-        val emailEditTextLayout = ObjectAnimator.ofFloat(binding.emailEditTextLayout, View.ALPHA, 1f).setDuration(100)
-        val passwordTextView = ObjectAnimator.ofFloat(binding.passwordTextView, View.ALPHA, 1f).setDuration(100)
-        val passwordEditTextLayout = ObjectAnimator.ofFloat(binding.passwordEditTextLayout, View.ALPHA, 1f).setDuration(100)
-        val login = ObjectAnimator.ofFloat(binding.loginButton, View.ALPHA, 1f).setDuration(100)
+        val nameTextView =
+            ObjectAnimator.ofFloat(binding.nameTextView, View.ALPHA, 1f).setDuration(100)
+        val nameEditTextLayout =
+            ObjectAnimator.ofFloat(binding.nameEditTextLayout, View.ALPHA, 1f).setDuration(100)
+        val emailTextView =
+            ObjectAnimator.ofFloat(binding.emailTextView, View.ALPHA, 1f).setDuration(100)
+        val emailEditTextLayout =
+            ObjectAnimator.ofFloat(binding.emailEditTextLayout, View.ALPHA, 1f).setDuration(100)
+        val passwordTextView =
+            ObjectAnimator.ofFloat(binding.passwordTextView, View.ALPHA, 1f).setDuration(100)
+        val passwordEditTextLayout =
+            ObjectAnimator.ofFloat(binding.passwordEditTextLayout, View.ALPHA, 1f).setDuration(100)
+        val signup = ObjectAnimator.ofFloat(binding.signupButton, View.ALPHA, 1f).setDuration(100)
 
         AnimatorSet().apply {
             playSequentially(
                 title,
-                message,
+                nameTextView,
+                nameEditTextLayout,
                 emailTextView,
                 emailEditTextLayout,
                 passwordTextView,
                 passwordEditTextLayout,
-                login
+                signup
             )
             startDelay = 100
         }.start()

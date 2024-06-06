@@ -16,20 +16,25 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
-import com.dicoding.picodiploma.loginwithanimation.data.ResultState
 import com.dicoding.picodiploma.loginwithanimation.data.pref.UserModel
+import com.dicoding.picodiploma.loginwithanimation.data.result.ResultState
 import com.dicoding.picodiploma.loginwithanimation.databinding.ActivityLoginBinding
 import com.dicoding.picodiploma.loginwithanimation.view.ViewModelFactory
 import com.dicoding.picodiploma.loginwithanimation.view.main.MainActivity
+import com.dicoding.picodiploma.loginwithanimation.view.signup.EmailEditText
+import com.dicoding.picodiploma.loginwithanimation.view.signup.MyEditText
 import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
+    private lateinit var myEditText: MyEditText
+    private lateinit var emailEditText: EmailEditText
 
     private val viewModel by viewModels<LoginViewModel> {
         ViewModelFactory.getInstance(this)
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,16 +42,20 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupView()
-        setupAction()
-        setupEditTextListeners()
         playAnimation()
+        setupAction()
+
+        emailEditText = binding.emailEditText
+        myEditText = binding.passwordEditText
+
+
     }
 
     private fun setupView() {
+        @Suppress("DEPRECATION")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             window.insetsController?.hide(WindowInsets.Type.statusBars())
         } else {
-            @Suppress("DEPRECATION")
             window.setFlags(
                 WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN
@@ -57,46 +66,47 @@ class LoginActivity : AppCompatActivity() {
 
     private fun setupAction() {
         binding.loginButton.setOnClickListener {
+
             val email = binding.emailEditText.text.toString()
             val password = binding.passwordEditText.text.toString()
 
-            if (!isFormValid(email, password)) {
-                return@setOnClickListener
-            }
-
-            viewModel.login(email, password).observe(this) { user ->
-                when (user) {
-                    is ResultState.Error -> {
-                        showToast(user.error)
-                    }
-                    is ResultState.Loading -> { }
+            viewModel.login(email,password).observe(this){user->
+                when(user){
                     is ResultState.Success -> {
-                        showToast(user.data.message)
+                        binding.progressBar.visibility = View.INVISIBLE
                         AlertDialog.Builder(this).apply {
-                            setTitle("Hore")
-                            setMessage("Selamat Anda berhasil login!")
-                            setPositiveButton("Lanjut") { dialog, _ ->
+                            setTitle("Yeay!")
+                            setMessage("Anda berhasil login")
+                            setPositiveButton("Lanjut") { _, _ ->
                                 saveSession(
                                     UserModel(
-                                        user.data.loginResult.name,
                                         user.data.loginResult.token,
+                                        user.data.loginResult.name,
                                         user.data.loginResult.userId,
                                         true
                                     )
                                 )
-                                dialog.dismiss()
                             }
-                            Log.e("Login", user.data.loginResult.token)
+                            Log.e("login",user.data.loginResult.token)
                             create()
                             show()
                         }
+                    }
+                    is ResultState.Loading ->{
+                        binding.progressBar.visibility = View.VISIBLE
+                    }
+                    is ResultState.Error ->{
+                        binding.progressBar.visibility = View.INVISIBLE
+                        val error = user.error
+                        Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
                     }
                 }
             }
         }
     }
 
-    private fun saveSession(session: UserModel) {
+
+    private fun saveSession(session: UserModel){
         lifecycleScope.launch {
             viewModel.saveSession(session)
             val intent = Intent(this@LoginActivity, MainActivity::class.java)
@@ -106,51 +116,7 @@ class LoginActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupEditTextListeners() {
-        binding.passwordEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                validatePassword(s.toString())
-            }
-
-            override fun afterTextChanged(s: Editable?) {}
-        })
-    }
-
-    private fun validatePassword(password: String) {
-        when {
-            password.isEmpty() -> binding.passwordEditText.error = "Password harus diisi"
-            password.length < 8 -> binding.passwordEditText.error = "Password minimal 8 karakter"
-            else -> binding.passwordEditText.error = null
-        }
-    }
-
-    private fun isFormValid(email: String, password: String): Boolean {
-        var isValid = true
-
-        if (email.isEmpty()) {
-            binding.emailEditText.error = "Email harus diisi"
-            isValid = false
-        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.emailEditText.error = "Email tidak sesuai"
-            isValid = false
-        }
-
-        if (password.isEmpty()) {
-            binding.passwordEditText.error = "Password harus diisi"
-            isValid = false
-        } else if (password.length < 8) {
-            binding.passwordEditText.error = "Password minimal 8 karakter"
-            isValid = false
-        }
-
-        return isValid
-    }
-
-    private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
 
     private fun playAnimation() {
         ObjectAnimator.ofFloat(binding.imageView, View.TRANSLATION_X, -30f, 30f).apply {
@@ -160,11 +126,16 @@ class LoginActivity : AppCompatActivity() {
         }.start()
 
         val title = ObjectAnimator.ofFloat(binding.titleTextView, View.ALPHA, 1f).setDuration(100)
-        val message = ObjectAnimator.ofFloat(binding.messageTextView, View.ALPHA, 1f).setDuration(100)
-        val emailTextView = ObjectAnimator.ofFloat(binding.emailTextView, View.ALPHA, 1f).setDuration(100)
-        val emailEditTextLayout = ObjectAnimator.ofFloat(binding.emailEditTextLayout, View.ALPHA, 1f).setDuration(100)
-        val passwordTextView = ObjectAnimator.ofFloat(binding.passwordTextView, View.ALPHA, 1f).setDuration(100)
-        val passwordEditTextLayout = ObjectAnimator.ofFloat(binding.passwordEditTextLayout, View.ALPHA, 1f).setDuration(100)
+        val message =
+            ObjectAnimator.ofFloat(binding.messageTextView, View.ALPHA, 1f).setDuration(100)
+        val emailTextView =
+            ObjectAnimator.ofFloat(binding.emailTextView, View.ALPHA, 1f).setDuration(100)
+        val emailEditTextLayout =
+            ObjectAnimator.ofFloat(binding.emailEditTextLayout, View.ALPHA, 1f).setDuration(100)
+        val passwordTextView =
+            ObjectAnimator.ofFloat(binding.passwordTextView, View.ALPHA, 1f).setDuration(100)
+        val passwordEditTextLayout =
+            ObjectAnimator.ofFloat(binding.passwordEditTextLayout, View.ALPHA, 1f).setDuration(100)
         val login = ObjectAnimator.ofFloat(binding.loginButton, View.ALPHA, 1f).setDuration(100)
 
         AnimatorSet().apply {
@@ -180,4 +151,8 @@ class LoginActivity : AppCompatActivity() {
             startDelay = 100
         }.start()
     }
+
+
+
+
 }

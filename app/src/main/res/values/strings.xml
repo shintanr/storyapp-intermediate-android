@@ -16,4 +16,9 @@
     <string name="logout_string">tombol logout</string>
     <string name="story_description">Deskripsi story</string>
     <string name="photo_detail">foto</string>
+    <string name="description">Deskripsi detail</string>
+    <string name="desc_list_story">Ini deskkripsi</string>
+    <string name="desc_menu1">deskripsi</string>
+    <string name="menambahkan_deskripsi">add description</string>
+    <string name="empty_image_warning">silakan masukan file gambar terlebih dahulu</string>
 </resources>

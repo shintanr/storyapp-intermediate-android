@@ -14,24 +14,38 @@ import kotlinx.coroutines.flow.Flow
 import retrofit2.HttpException
 import retrofit2.Response
 import android.util.Log
+import com.dicoding.picodiploma.loginwithanimation.response.UploadStoryResponse
 import kotlinx.coroutines.flow.first
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 
 class UserRepository private constructor(
     private val userPreference: UserPreference,
     private val apiService: ApiService
 ) {
 
-    fun getDetailStory(id: String): LiveData<ResultState<ListStoryItem>> = liveData {
+    fun uploadStory(image: File, description: String): LiveData<ResultState<UploadStoryResponse>> = liveData {
         emit(ResultState.Loading)
         try {
             val token = userPreference.getToken().first()
-            val response = apiService.detailStory("Bearer $token", id)
-            val result = response.story
-            emit(ResultState.Success(result))
+            val requestDescription = description.toRequestBody("text/plain".toMediaType())
+            val requestImage = image.asRequestBody("image/jpeg".toMediaTypeOrNull())
+            val imageMultipart = MultipartBody.Part.createFormData(
+                "photo",
+                image.name,
+                requestImage
+            )
+            val response = apiService.uploadStory("Bearer $token", imageMultipart, requestDescription)
+            emit(ResultState.Success(response))
         } catch (e: Exception) {
             emit(ResultState.Error(e.message.toString()))
         }
     }
+
 
     fun getStory(): LiveData<ResultState<List<ListStoryItem>>> = liveData{
         emit(ResultState.Loading)

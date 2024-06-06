@@ -1,34 +1,40 @@
 package com.dicoding.picodiploma.loginwithanimation.view.main
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.view.WindowInsets
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.dicoding.picodiploma.loginwithanimation.R
 import com.dicoding.picodiploma.loginwithanimation.data.ResultState
 import com.dicoding.picodiploma.loginwithanimation.databinding.ActivityMainBinding
-import com.dicoding.picodiploma.loginwithanimation.response.ListStoryItem
 import com.dicoding.picodiploma.loginwithanimation.view.ViewModelFactory
-import com.dicoding.picodiploma.loginwithanimation.view.detail.DetailActivity
+import com.dicoding.picodiploma.loginwithanimation.view.upload.CameraActivity
+import com.dicoding.picodiploma.loginwithanimation.view.upload.CameraActivity.Companion.CAMERAX_RESULT
 import com.dicoding.picodiploma.loginwithanimation.view.welcome.WelcomeActivity
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
+
+    private lateinit var binding: ActivityMainBinding
+    private var currentImageUri: Uri? = null
+
     private val viewModel by viewModels<MainViewModel> {
         ViewModelFactory.getInstance(this)
     }
-    private lateinit var binding: ActivityMainBinding
-    private lateinit var adapter: MainAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,24 +43,8 @@ class MainActivity : AppCompatActivity() {
 
         supportActionBar?.show()
 
-        // Initialize adapter and set onClickCallback
-        adapter = MainAdapter().apply {
-            setOnItemClickCallback(object : MainAdapter.OnItemClickCallback {
-                override fun onItemClicked(data: ListStoryItem) {
-                    val intent = Intent(this@MainActivity, DetailActivity::class.java)
-                    intent.putExtra(DetailActivity.EXTRA_ID, data.id)
-
-                    // Debugging: Print the ID being passed
-                    Log.d("MainActivity", "Clicked story ID: ${data.id}")
-
-                    startActivity(intent)
-                }
-            })
-        }
-
-        // Setup RecyclerView
-        setupRecyclerView()
         setupView()
+        setupAction()
 
         // Observe session state
         viewModel.getSession().observe(this) {
@@ -67,35 +57,32 @@ class MainActivity : AppCompatActivity() {
                 setupAction()
             }
         }
-    }
 
-    private fun setupRecyclerView() {
         val layoutManager = LinearLayoutManager(this)
         binding.rvStory.layoutManager = layoutManager
         val itemDecoration = DividerItemDecoration(this, layoutManager.orientation)
         binding.rvStory.addItemDecoration(itemDecoration)
-        binding.rvStory.adapter = adapter
+
+        binding.addStory.setOnClickListener { startCameraX() }
     }
 
-    private fun setupAction() {
+    private fun setupAction(){
         lifecycleScope.launch {
             viewModel.getStories().observe(this@MainActivity) { story ->
                 when (story) {
                     is ResultState.Error -> {
-                        // Hide progress bar
                         // binding.progressBar.visibility = View.INVISIBLE
-                        Toast.makeText(this@MainActivity, story.error, Toast.LENGTH_SHORT).show()
+                        val error = story.error
+                        Toast.makeText(this@MainActivity, error, Toast.LENGTH_SHORT).show()
                     }
-
                     is ResultState.Loading -> {
-                        // Show progress bar
                         // binding.progressBar.visibility = View.VISIBLE
                     }
-
                     is ResultState.Success -> {
-                        // Hide progress bar
                         // binding.progressBar.visibility = View.INVISIBLE
+                        val adapter = MainAdapter()
                         adapter.submitList(story.data)
+                        binding.rvStory.adapter = adapter
                     }
                 }
             }
@@ -133,5 +120,19 @@ class MainActivity : AppCompatActivity() {
             }
         }
         return super.onOptionsItemSelected(item)
+    }
+
+    private val launcherIntentCameraX = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (it.resultCode == CAMERAX_RESULT) {
+            currentImageUri = it.data?.getStringExtra(CameraActivity.EXTRA_CAMERAX_IMAGE)?.toUri()
+            // Handle the image URI, e.g., display it or upload it
+        }
+    }
+
+    private fun startCameraX() {
+        val intent = Intent(this, CameraActivity::class.java)
+        launcherIntentCameraX.launch(intent)
     }
 }

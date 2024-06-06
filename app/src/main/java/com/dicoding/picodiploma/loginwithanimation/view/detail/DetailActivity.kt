@@ -9,68 +9,41 @@ import com.bumptech.glide.Glide
 import com.dicoding.picodiploma.loginwithanimation.R
 import com.dicoding.picodiploma.loginwithanimation.data.ResultState
 import com.dicoding.picodiploma.loginwithanimation.databinding.ActivityDetailBinding
+import com.dicoding.picodiploma.loginwithanimation.response.ListStoryItem
 import com.dicoding.picodiploma.loginwithanimation.view.ViewModelFactory
 import com.dicoding.picodiploma.loginwithanimation.withDateFormat
 
+
+@Suppress("DEPRECATION")
 class DetailActivity : AppCompatActivity() {
-    private val viewModel by viewModels<DetailViewModel> {
-        ViewModelFactory.getInstance(this)
-    }
     private lateinit var binding: ActivityDetailBinding
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        val storyId = intent.getStringExtra(EXTRA_ID)
-        if (storyId != null) {
-            viewModel.setStoryId(storyId)
-        } else {
-            // Handle the case where storyId is null
-            Toast.makeText(this, "Story ID is missing", Toast.LENGTH_SHORT).show()
-            finish()
-        }
 
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.setHomeAsUpIndicator(R.drawable.button_back)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        val detail = intent.getParcelableExtra<ListStoryItem>(DetailActivity.DETAIL_STORY) as ListStoryItem
+        setupAction(detail)
 
-        viewModel.detailStory.observe(this) { result ->
-            when (result) {
-                is ResultState.Error -> {
-                    showLoading(false)
-                    Toast.makeText(this, result.error, Toast.LENGTH_SHORT).show()
-                }
-                is ResultState.Loading -> {
-                    showLoading(true)
-                }
-                is ResultState.Success -> {
-                    showLoading(false)
-                    val item = result.data
-                    binding.apply {
-                        Glide.with(this@DetailActivity)
-                            .load(item.photoUrl)
-                            .into(ImageView)  // Ensure this ID matches your layout
-                        toolbar.title = item.name
-                        toolbar.subtitle = item.createdAt?.withDateFormat()
-                        tvDesc.text = item.description
-                    }
-                }
-            }
-        }
+        supportActionBar?.show()
+        supportActionBar?.title = "Detail Story"
+
+
+
     }
 
-    override fun onSupportNavigateUp(): Boolean {
-        onBackPressedDispatcher.onBackPressed()
-        return true
+    private fun setupAction(detail: ListStoryItem){
+        Glide.with(applicationContext)
+            .load(detail.photoUrl)
+            .into(binding.avatarDetail)
+        binding.tvName.text = detail.name
+        binding.tvDesc.text = detail.description
     }
-
-    private fun showLoading(isLoading: Boolean) {
-        binding.progressIndicator.visibility = if (isLoading) View.VISIBLE else View.GONE
-    }
-
     companion object {
-        const val EXTRA_ID = "id"
+        const val DETAIL_STORY = "detail_story"
     }
 }

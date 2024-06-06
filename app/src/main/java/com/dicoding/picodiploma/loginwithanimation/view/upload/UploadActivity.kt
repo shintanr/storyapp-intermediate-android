@@ -67,7 +67,7 @@ class UploadActivity : AppCompatActivity() {
 
                         is ResultState.Success -> {
                             showToast(result.data.message)
-                                                        startActivity(Intent(this@UploadActivity, MainActivity::class.java))
+                            startActivity(Intent(this@UploadActivity, MainActivity::class.java))
                             finish()
                         }
 

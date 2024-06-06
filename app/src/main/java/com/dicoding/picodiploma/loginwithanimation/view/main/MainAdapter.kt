@@ -12,7 +12,6 @@ import com.bumptech.glide.Glide
 import com.dicoding.picodiploma.loginwithanimation.databinding.ItemStoryBinding
 import com.dicoding.picodiploma.loginwithanimation.response.ListStoryItem
 import com.dicoding.picodiploma.loginwithanimation.view.detail.DetailActivity
-import com.dicoding.picodiploma.loginwithanimation.withDateFormat
 
 class MainAdapter  : ListAdapter<ListStoryItem, MainAdapter.MyViewHolder>(DIFF_CALLBACK) {
 

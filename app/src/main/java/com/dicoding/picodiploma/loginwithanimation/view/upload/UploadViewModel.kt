@@ -8,8 +8,5 @@ import com.dicoding.picodiploma.loginwithanimation.response.UploadStoryResponse
 import java.io.File
 
 class UploadViewModel(private val repository: UserRepository) : ViewModel() {
-
-    fun uploadImage(image: File, description: String): LiveData<ResultState<UploadStoryResponse>> {
-        return repository.uploadStory(image, description)
-    }
+    fun uploadImage(file: File, description: String) = repository.uploadImage(file, description)
 }

@@ -10,8 +10,6 @@ import com.dicoding.picodiploma.loginwithanimation.R
 import com.dicoding.picodiploma.loginwithanimation.data.ResultState
 import com.dicoding.picodiploma.loginwithanimation.databinding.ActivityDetailBinding
 import com.dicoding.picodiploma.loginwithanimation.response.ListStoryItem
-import com.dicoding.picodiploma.loginwithanimation.view.ViewModelFactory
-import com.dicoding.picodiploma.loginwithanimation.withDateFormat
 
 
 @Suppress("DEPRECATION")

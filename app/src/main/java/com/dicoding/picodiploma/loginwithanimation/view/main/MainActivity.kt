@@ -24,13 +24,14 @@ import com.dicoding.picodiploma.loginwithanimation.databinding.ActivityMainBindi
 import com.dicoding.picodiploma.loginwithanimation.view.ViewModelFactory
 import com.dicoding.picodiploma.loginwithanimation.view.upload.CameraActivity
 import com.dicoding.picodiploma.loginwithanimation.view.upload.CameraActivity.Companion.CAMERAX_RESULT
+import com.dicoding.picodiploma.loginwithanimation.view.upload.UploadActivity
 import com.dicoding.picodiploma.loginwithanimation.view.welcome.WelcomeActivity
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
-    private var currentImageUri: Uri? = null
+
 
     private val viewModel by viewModels<MainViewModel> {
         ViewModelFactory.getInstance(this)
@@ -45,6 +46,7 @@ class MainActivity : AppCompatActivity() {
 
         setupView()
         setupAction()
+
 
         // Observe session state
         viewModel.getSession().observe(this) {
@@ -63,7 +65,9 @@ class MainActivity : AppCompatActivity() {
         val itemDecoration = DividerItemDecoration(this, layoutManager.orientation)
         binding.rvStory.addItemDecoration(itemDecoration)
 
-        binding.addStory.setOnClickListener { startCameraX() }
+        binding.addStory.setOnClickListener {
+            startActivity(Intent(this, UploadActivity::class.java))
+        }
     }
 
     private fun setupAction(){
@@ -122,17 +126,4 @@ class MainActivity : AppCompatActivity() {
         return super.onOptionsItemSelected(item)
     }
 
-    private val launcherIntentCameraX = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) {
-        if (it.resultCode == CAMERAX_RESULT) {
-            currentImageUri = it.data?.getStringExtra(CameraActivity.EXTRA_CAMERAX_IMAGE)?.toUri()
-            // Handle the image URI, e.g., display it or upload it
-        }
-    }
-
-    private fun startCameraX() {
-        val intent = Intent(this, CameraActivity::class.java)
-        launcherIntentCameraX.launch(intent)
-    }
 }

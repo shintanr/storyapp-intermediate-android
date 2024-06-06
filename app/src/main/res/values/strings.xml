@@ -21,4 +21,8 @@
     <string name="desc_menu1">deskripsi</string>
     <string name="menambahkan_deskripsi">add description</string>
     <string name="empty_image_warning">silakan masukan file gambar terlebih dahulu</string>
+    <string name="upload">upload gambar</string>
+    <string name="gallery">gallery</string>
+    <string name="camera_x">cameraX</string>
+    <string name="camera">camera</string>
 </resources>

@@ -23,28 +23,34 @@ import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.io.File
 
-class UserRepository private constructor(
+class UserRepository (
     private val userPreference: UserPreference,
     private val apiService: ApiService
 ) {
 
-    fun uploadStory(image: File, description: String): LiveData<ResultState<UploadStoryResponse>> = liveData {
+
+
+    fun uploadImage(imageFile: File, description: String): LiveData<ResultState<UploadStoryResponse>> = liveData{
         emit(ResultState.Loading)
+        val token = userPreference.getToken().first()
+        val requestBody = description.toRequestBody("text/plain".toMediaType())
+        val requestImageFile = imageFile.asRequestBody("image/jpeg".toMediaType())
+        val multipartBody = MultipartBody.Part.createFormData(
+            "photo",
+            imageFile.name,
+            requestImageFile
+        )
         try {
-            val token = userPreference.getToken().first()
-            val requestDescription = description.toRequestBody("text/plain".toMediaType())
-            val requestImage = image.asRequestBody("image/jpeg".toMediaTypeOrNull())
-            val imageMultipart = MultipartBody.Part.createFormData(
-                "photo",
-                image.name,
-                requestImage
-            )
-            val response = apiService.uploadStory("Bearer $token", imageMultipart, requestDescription)
-            emit(ResultState.Success(response))
-        } catch (e: Exception) {
-            emit(ResultState.Error(e.message.toString()))
+            val successResponse = apiService.uploadImage("Bearer $token", multipartBody, requestBody)
+            emit(ResultState.Success(successResponse))
+        } catch (e: HttpException) {
+            val errorBody = e.response()?.errorBody()?.string()
+            val errorResponse = Gson().fromJson(errorBody, UploadStoryResponse::class.java)
+            emit(ResultState.Error(errorResponse.message))
         }
     }
+
+
 
 
     fun getStory(): LiveData<ResultState<List<ListStoryItem>>> = liveData{

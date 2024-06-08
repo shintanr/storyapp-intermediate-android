@@ -2,6 +2,7 @@ package com.dicoding.picodiploma.loginwithanimation.view.signup
 
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
@@ -21,21 +22,27 @@ import com.dicoding.picodiploma.loginwithanimation.view.login.LoginActivity
 
 class SignupActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySignupBinding
+    private lateinit var myEditText: MyEditText
 
     private val viewModel by viewModels<SignUpViewModel> {
         ViewModelFactory.getInstance(this)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         binding = ActivitySignupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setupView()
         setupAction()
-        setupEditTextListeners()
+        setupView()
         playAnimation()
+
+
+        myEditText = binding.passwordEditText
+
     }
+
 
     private fun setupView() {
         @Suppress("DEPRECATION")
@@ -48,86 +55,6 @@ class SignupActivity : AppCompatActivity() {
             )
         }
         supportActionBar?.hide()
-    }
-
-    private fun setupAction() {
-        binding.signupButton.setOnClickListener {
-            val name = binding.nameEditText.text.toString()
-            val email = binding.emailEditText.text.toString()
-            val password = binding.passwordEditText.text.toString()
-
-            if (!isFormValid(name, email, password)) {
-                return@setOnClickListener
-            }
-
-            viewModel.register(name, email, password).observe(this) { result ->
-                when (result) {
-                    is ResultState.Error -> {
-                        showToast(result.error)
-                    }
-                    is ResultState.Loading -> { }
-                    is ResultState.Success -> {
-                        startActivity(Intent(this, LoginActivity::class.java))
-                        showToast(result.data.message)
-                    }
-                }
-            }
-        }
-    }
-
-    private fun setupEditTextListeners() {
-        binding.passwordEditText.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
-                validatePassword(s.toString())
-            }
-
-            override fun afterTextChanged(s: Editable?) {}
-        })
-
-        // Add similar TextWatcher for other fields if needed
-    }
-
-    private fun validatePassword(password: String) {
-        if (password.isEmpty()) {
-            binding.passwordEditText.error = "Password harus diisi"
-        } else if (password.length < 8) {
-            binding.passwordEditText.error = "Password minimal 8 karakter"
-        } else {
-            binding.passwordEditText.error = null
-        }
-    }
-
-    private fun showToast(message: String) {
-        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-    }
-
-    private fun isFormValid(name: String, email: String, password: String): Boolean {
-        var isValid = true
-
-        if (name.isEmpty()) {
-            binding.nameEditText.error = "Nama harus di isi"
-            isValid = false
-        }
-
-        if (email.isEmpty()) {
-            binding.emailEditText.error = "Email harus diisi"
-            isValid = false
-        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.emailEditText.error = "Email tidak sesuai"
-            isValid = false
-        }
-
-        if (password.isEmpty()) {
-            binding.passwordEditText.error = "Password harus diisi"
-            isValid = false
-        } else if (password.length < 8) {
-            binding.passwordEditText.error = "Password minimal 8 karakter"
-            isValid = false
-        }
-
-        return isValid
     }
 
 
@@ -153,6 +80,7 @@ class SignupActivity : AppCompatActivity() {
             ObjectAnimator.ofFloat(binding.passwordEditTextLayout, View.ALPHA, 1f).setDuration(100)
         val signup = ObjectAnimator.ofFloat(binding.signupButton, View.ALPHA, 1f).setDuration(100)
 
+
         AnimatorSet().apply {
             playSequentially(
                 title,
@@ -167,4 +95,46 @@ class SignupActivity : AppCompatActivity() {
             startDelay = 100
         }.start()
     }
+
+
+    @SuppressLint("SuspiciousIndentation")
+    private fun setupAction(){
+        binding.signupButton.setOnClickListener {
+            val name = binding.nameEditText.text.toString()
+            val email = binding.emailEditText.text.toString()
+            val password = binding.passwordEditText.text.toString()
+
+            viewModel.register(name,email,password).observe(this){ user->
+                when (user) {
+                    is ResultState.Error -> {
+                        binding.progressBar.visibility = View.INVISIBLE
+                        val error = user.error
+                        Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+                    }
+
+                    is ResultState.Loading -> {
+                        binding.progressBar.visibility = View.VISIBLE
+                    }
+
+                    is ResultState.Success -> {
+                        binding.progressBar.visibility = View.INVISIBLE
+                        AlertDialog.Builder(this).apply {
+                            setTitle("Yeay")
+                            setMessage("Anda berhasil mendaftar. Sudah siap berbagi cerita?")
+                            setPositiveButton("Lanjut") { _, _ ->
+                                val intent = Intent(context, LoginActivity::class.java)
+                                intent.flags =
+                                    Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                                startActivity(intent)
+                                finish()
+                            }
+                            create()
+                            show()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
 }

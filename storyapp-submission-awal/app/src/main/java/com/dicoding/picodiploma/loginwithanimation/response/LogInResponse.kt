@@ -1,5 +1,7 @@
 package com.dicoding.picodiploma.loginwithanimation.response
 
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 import com.google.gson.annotations.SerializedName
 
 
@@ -10,20 +12,9 @@ data class LogInResponse(
     val loginResult: LoginResult,
 
     @field:SerializedName("error")
-    val error: Boolean? = null,
+    val error: Boolean,
 
     @field:SerializedName("message")
-    val message: String? = null
+    val message: String
 )
 
-data class LoginResult(
-
-    @field:SerializedName("name")
-    val name: String,
-
-    @field:SerializedName("userId")
-    val userId: String,
-
-    @field:SerializedName("token")
-    val token: String
-)

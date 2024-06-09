@@ -7,4 +7,11 @@
     </style>
 
     <style name="Theme.LoginWithAnimation" parent="Base.Theme.LoginWithAnimation" />
+    <style name="Theme.LoginWithAnimation.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+    <style name="Theme.LoginWithAnimation.AppBarOverlay"
+        parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+    <style name="Theme.LoginWithAnimation.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 </resources>

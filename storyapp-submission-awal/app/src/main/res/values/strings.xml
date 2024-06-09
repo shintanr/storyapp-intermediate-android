@@ -21,4 +21,23 @@
     <string name="desc_menu1">ini deskripsi</string>
     <string name="logout_string">logout</string>
     <string name="empty_image_warning">silakan masukan gambar dulu</string>
+    <string name="title_activity_map">MapsActivity</string>
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+    <string name="nav_header_title">Android Studio</string>
+    <string name="nav_header_subtitle">android.studio@android.com</string>
+    <string name="nav_header_desc">Navigation header</string>
+    <string name="action_settings">Settings</string>
+
+    <string name="menu_home">Home</string>
+    <string name="menu_gallery">Gallery</string>
+    <string name="menu_slideshow">Slideshow</string>
+    <string name="email_error_message">Masukkan email yang sesuai</string>
+    <string name="password_error_message">Passowrd harus minimal 8 karakter</string>
+    <string name="foto_story_app_kamu">foto detail</string>
+    <string name="loading">Loading</string>
+    <string name="tambahkan_deskripsi">tambahkan deskripsi</string>
+    <string name="maps">Maps</string>
+    <string name="retry">retry</string>
+    <string name="masukkan_email">masukkan email</string>
 </resources>

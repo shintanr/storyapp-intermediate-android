@@ -28,8 +28,6 @@ import kotlinx.coroutines.launch
 class LoginActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityLoginBinding
-    private lateinit var myEditText: MyEditText
-    private lateinit var emailEditText: EmailEditText
 
     private val viewModel by viewModels<LoginViewModel> {
         ViewModelFactory.getInstance(this)
@@ -42,13 +40,8 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setupView()
-        playAnimation()
         setupAction()
-
-        emailEditText = binding.emailEditText
-        myEditText = binding.passwordEditText
-
-
+        playAnimation()
     }
 
     private fun setupView() {
@@ -67,56 +60,27 @@ class LoginActivity : AppCompatActivity() {
     private fun setupAction() {
         binding.loginButton.setOnClickListener {
 
-            val email = binding.emailEditText.text.toString()
-            val password = binding.passwordEditText.text.toString()
+            val email = binding.edLoginEmail.text.toString()
+            val password = binding.edLoginPassword.text.toString()
 
-            viewModel.login(email,password).observe(this){user->
-                when(user){
+            viewModel.login(email, password).observe(this) { result ->
+                when (result) {
+                    is ResultState.Loading -> { showLoading(true) }
                     is ResultState.Success -> {
-                        binding.progressBar.visibility = View.INVISIBLE
-                        AlertDialog.Builder(this).apply {
-                            setTitle("Yeay!")
-                            setMessage("Anda berhasil login")
-                            setPositiveButton("Lanjut") { _, _ ->
-                                saveSession(
-                                    UserModel(
-                                        user.data.loginResult.token,
-                                        user.data.loginResult.name,
-                                        user.data.loginResult.userId,
-                                        true
-                                    )
-                                )
-                            }
-                            Log.e("login",user.data.loginResult.token)
-                            create()
-                            show()
-                        }
+                        showLoading(false)
+                        result.data.message?.let { it1 -> showToast(it1) }
+                        val intent = Intent(this, MainActivity::class.java)
+                        startActivity(intent)
+                        this.finish()
                     }
-                    is ResultState.Loading ->{
-                        binding.progressBar.visibility = View.VISIBLE
-                    }
-                    is ResultState.Error ->{
-                        binding.progressBar.visibility = View.INVISIBLE
-                        val error = user.error
-                        Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
+                    is ResultState.Error -> {
+                        showLoading(false)
+                        showToast(result.error)
                     }
                 }
             }
         }
     }
-
-
-    private fun saveSession(session: UserModel){
-        lifecycleScope.launch {
-            viewModel.saveSession(session)
-            val intent = Intent(this@LoginActivity, MainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-            ViewModelFactory.clearInstance()
-            startActivity(intent)
-        }
-    }
-
-
 
     private fun playAnimation() {
         ObjectAnimator.ofFloat(binding.imageView, View.TRANSLATION_X, -30f, 30f).apply {
@@ -152,7 +116,18 @@ class LoginActivity : AppCompatActivity() {
         }.start()
     }
 
+    private fun showLoading(isLoading: Boolean) {
+        binding.progressIndicator.visibility = if (isLoading) View.VISIBLE else View.GONE
+    }
 
+    private fun isFormValid(email: String, password: String): Boolean {
+        val isEmailValid = email.isNotEmpty() && android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        val isPasswordValid = password.isNotEmpty() && password.length >= 8
 
+        return isEmailValid && isPasswordValid
+    }
 
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
 }

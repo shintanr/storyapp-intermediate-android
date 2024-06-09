@@ -22,27 +22,19 @@ import com.dicoding.picodiploma.loginwithanimation.view.login.LoginActivity
 
 class SignupActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySignupBinding
-    private lateinit var myEditText: MyEditText
 
-    private val viewModel by viewModels<SignUpViewModel> {
+    private val viewModel by viewModels<SignupViewModel> {
         ViewModelFactory.getInstance(this)
     }
-
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
         binding = ActivitySignupBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setupAction()
         setupView()
+        setupAction()
         playAnimation()
-
-
-        myEditText = binding.passwordEditText
-
     }
-
 
     private fun setupView() {
         @Suppress("DEPRECATION")
@@ -57,6 +49,34 @@ class SignupActivity : AppCompatActivity() {
         supportActionBar?.hide()
     }
 
+    private fun setupAction() {
+        binding.signupButton.setOnClickListener {
+            val name = binding.edRegisterName.text.toString()
+            val email = binding.edRegisterEmail.text.toString()
+            val password = binding.edRegisterPassword.text.toString()
+
+            if (!isFormValid(name, email, password)) {
+                showToast("Form Isi Semua Dong")
+                return@setOnClickListener
+            }
+
+            viewModel.register(name, email, password).observe(this) { result ->
+                when (result) {
+                    is ResultState.Error -> {
+                        showLoading(false)
+                        showToast(result.error)
+                    }
+                    is ResultState.Loading -> { showLoading(true) }
+                    is ResultState.Success -> {
+                        showLoading(false)
+                        startActivity(Intent(this, LoginActivity::class.java))
+                        showToast(result.data.message)
+                    }
+                }
+            }
+
+        }
+    }
 
     private fun playAnimation() {
         ObjectAnimator.ofFloat(binding.imageView, View.TRANSLATION_X, -30f, 30f).apply {
@@ -92,49 +112,23 @@ class SignupActivity : AppCompatActivity() {
                 passwordEditTextLayout,
                 signup
             )
-            startDelay = 100
+            startDelay = 200
         }.start()
     }
 
-
-    @SuppressLint("SuspiciousIndentation")
-    private fun setupAction(){
-        binding.signupButton.setOnClickListener {
-            val name = binding.nameEditText.text.toString()
-            val email = binding.emailEditText.text.toString()
-            val password = binding.passwordEditText.text.toString()
-
-            viewModel.register(name,email,password).observe(this){ user->
-                when (user) {
-                    is ResultState.Error -> {
-                        binding.progressBar.visibility = View.INVISIBLE
-                        val error = user.error
-                        Toast.makeText(this, error, Toast.LENGTH_SHORT).show()
-                    }
-
-                    is ResultState.Loading -> {
-                        binding.progressBar.visibility = View.VISIBLE
-                    }
-
-                    is ResultState.Success -> {
-                        binding.progressBar.visibility = View.INVISIBLE
-                        AlertDialog.Builder(this).apply {
-                            setTitle("Yeay")
-                            setMessage("Anda berhasil mendaftar. Sudah siap berbagi cerita?")
-                            setPositiveButton("Lanjut") { _, _ ->
-                                val intent = Intent(context, LoginActivity::class.java)
-                                intent.flags =
-                                    Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
-                                startActivity(intent)
-                                finish()
-                            }
-                            create()
-                            show()
-                        }
-                    }
-                }
-            }
-        }
+    private fun showLoading(isLoading: Boolean) {
+        binding.progressIndicator.visibility = if (isLoading) View.VISIBLE else View.GONE
     }
 
+    private fun isFormValid(name: String, email: String, password: String): Boolean {
+        val isNameValid = name.isNotEmpty()
+        val isEmailValid = email.isNotEmpty() && android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+        val isPasswordValid = password.isNotEmpty() && password.length >= 8
+
+        return isNameValid && isEmailValid && isPasswordValid
+    }
+
+    private fun showToast(message: String) {
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
 }
